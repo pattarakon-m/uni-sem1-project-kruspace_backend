@@ -17,6 +17,6 @@ def root():
 @app.route(api_base + "/assignment/<action>") # info, add, edit_score
 @app.route(api_base + "/calendar/<action>")
 @app.route(api_base + "/file/<action>") # info, upload, download
-@app.route(api_base + "/search/<category_to_search>") # TODO: Change "script" to something else (ex. to_be_search, search_type)
+@app.route(api_base + "/search/<category_to_search>") # student, file, assignment, attendent
 def dummyHandler(**kwargs):
     print(kwargs)
