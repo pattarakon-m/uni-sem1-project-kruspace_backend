@@ -1,0 +1,9 @@
+{
+    "teacher_id": 654321,
+    "firstname": "alice",
+    "lastname": "baz",
+    "email": "alice@example.com",
+    "sex": "female",
+    "prefix": "Ms.",
+    "other_data": "{ \"any\": \"json encoded string\", \"this is bad choice\": \"in production\"}"
+}

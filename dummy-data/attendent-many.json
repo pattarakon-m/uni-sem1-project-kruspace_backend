@@ -1,0 +1,18 @@
+{
+	"attendent_info":  {
+		"date": 1790644126,
+		"comment": "see attendent-single.json"
+	},
+	"attendents": [
+		{
+			"status": "มา",
+			"student_id": "69420-67",
+			"comment": "TODO"
+		},
+		{
+			"status": "ขาด",
+			"student_id": "13370-69",
+			"comment": "TODO"
+		}
+	]
+}
