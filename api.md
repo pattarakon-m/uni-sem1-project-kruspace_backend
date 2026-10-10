@@ -1,9 +1,9 @@
 ﻿# Server API
 ### data type
 Data | Expected Value | Type
-:---|:---|---
-Date & Time| Unix timestamp| Number
-Student ID (sid) | | String
+:---             |:---            |---
+Date & Time      | Unix timestamp | Number
+Student ID (sid) |                | String
 
 ### auth
 - Authorization header
@@ -72,7 +72,7 @@ Student ID (sid) | | String
 		- sex
 		- prefix?
 		- other data
-	 - parameter
+	- parameter
 		 - id
 - POST: update/add data
 	- body
@@ -114,7 +114,7 @@ Student ID (sid) | | String
 - DELETE
 
 
-/search/{search_type}
+### /search/{search_type}
 - GET
 	- search_type are { files, students, assignment}
 	- file parameter
