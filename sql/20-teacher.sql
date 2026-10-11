@@ -5,11 +5,12 @@ CREATE TABLE IF NOT EXISTS teacher (
 	lastname TEXT,
 	prefix TEXT,
 	email TEXT,
+	sex TEXT,
 	profile_img BLOB,
 
 	-- internal things
-	password_hash TEXT,
-	password_salt TEXT,
-	create_at DATE,
-	update_at DATE
+	password_hash BLOB,
+	password_salt BLOB,
+	create_at TEXT,
+	update_at TEXT
 );

@@ -2,6 +2,7 @@ from flask import *
 import sqlite3
 import json
 import os
+import base64
 
 app = Flask(__name__)
 api_base = "/api/v0"
@@ -74,21 +75,38 @@ def teacher_info():
     if not is_logged_in(teacher_id, session_id):
         abort(401)
     db = None
+    # Don't worry about non exists teacher, is_logged_in already check it for us.
     if request.method == 'POST':
         req = request.get_json()
+        # TODO: server should validate user input
         db = sql_opendb()
-        db.cursor().execute('''
-            UPDATE teacher SET
-            prefix = ?,     firstname = ?,    lastname = ?,    email = ?   WHERE id = ?''',
-            (req["prefix"], req["firstname"], req["lastname"], req["email"], teacher_id)
-                            )
+        db_cur = db.cursor()
+        for field in ["prefix", "firstname", "lastname", "sex", "email"]:
+            if field not in req:
+                continue
+            query = "UPDATE teacher SET %s = ? WHERE id = ?" % field # this is safe, user can't control `field`
+            db_cur.execute(query, [req[field], teacher_id])
+        if req.get("profile_img"):
+            db_cur.execute("UPDATE teacher SET profile_img = ? WHERE id = ?",
+                [base64.b64decode(req["profile_img"]), teacher_id]
+            )
+        db_cur.execute("UPDATE teacher SET update_at = datetime() WHERE id = ?", [teacher_id])
+        db.commit()
     http_res = make_response()
     http_res.headers["Content-Type"] = "application/json"
     db = sql_opendb()
-    exec_res = db.cursor().execute("SELECT prefix, firstname, lastname, email FROM teacher WHERE id = ?", [teacher_id])
+    # TODO: sent profile image on demand.
+    exec_res = db.cursor().execute('''
+        SELECT prefix, firstname, lastname, sex, email, profile_img
+        FROM teacher WHERE id = ?''',
+        [teacher_id]
+    )
     db_data = exec_res.fetchall()
     sql_closedb()
     if len(db_data) > 0:
-        http_res.data = json.dumps(db_data[0]) + "\n"
+        teacher_data = db_data[0]
+        if teacher_data["profile_img"]:
+            teacher_data["profile_img"] = base64.b64encode(teacher_data["profile_img"]).decode()
+        http_res.data = json.dumps(teacher_data) + "\n"
         return http_res
     abort(400)

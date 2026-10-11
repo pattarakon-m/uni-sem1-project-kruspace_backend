@@ -6,8 +6,9 @@ Date & Time      | Unix timestamp | Number
 Student ID (sid) |                | String
 
 ### auth
-- Authorization header
 - session cookie(s)
+	- session_id
+	- teacher_id
 
 ### method
 - GET read data, use url query
@@ -63,25 +64,21 @@ Student ID (sid) |                | String
 		- prefix
 - DELETE: delete from db
 
-###  /teacher
-- GET:
-	- returns
-		- id
-		- firstname
-		- lastname
-		- sex
-		- prefix?
-		- other data
-	- parameter
-		 - id
-- POST: update/add data
-	- body
-		- tid (update)
-		- firstname
-		- lastname
-		- sex
-		- prefix
-		- other data
+###  `/teacher_info` DONE
+- GET (get teacher profile)
+- POST (update teacher profile)
+
+#### body (both request (POST) and response)
+```json
+{
+	"prefix": string
+	"firstname": string
+	"lastname": string
+	"email": string
+	"sex": string
+	"profile_img": base64 encoded string
+}
+```
 
 ### /activity
 - GET
