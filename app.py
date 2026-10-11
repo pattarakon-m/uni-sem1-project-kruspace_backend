@@ -52,9 +52,10 @@ def is_logged_in(teacher_id, session_id):
 def new_teacher():
     return
 
+## API
+
 @app.route(api_base + "/")
 @app.route(api_base + "/students")
-@app.route(api_base + "/teacher_info")
 @app.route(api_base + "/attendent")
 @app.route(api_base + "/assignment/<action>") # info, add, edit_score
 @app.route(api_base + "/calendar/<action>")
@@ -62,3 +63,32 @@ def new_teacher():
 @app.route(api_base + "/search/<category_to_search>") # student, file, assignment, attendent
 def dummyHandler(**kwargs):
     print(kwargs)
+    res = make_response()
+    res.headers["Content-Type"] = "application/json"
+    return json.dumps(kwargs, indent="\t")
+
+@app.route(api_base + "/teacher_info", methods=['GET', 'POST'])
+def teacher_info():
+    session_id = request.cookies.get("session_id")
+    teacher_id = request.cookies.get("teacher_id")
+    if not is_logged_in(teacher_id, session_id):
+        abort(401)
+    db = None
+    if request.method == 'POST':
+        req = request.get_json()
+        db = sql_opendb()
+        db.cursor().execute('''
+            UPDATE teacher SET
+            prefix = ?,     firstname = ?,    lastname = ?,    email = ?   WHERE id = ?''',
+            (req["prefix"], req["firstname"], req["lastname"], req["email"], teacher_id)
+                            )
+    http_res = make_response()
+    http_res.headers["Content-Type"] = "application/json"
+    db = sql_opendb()
+    exec_res = db.cursor().execute("SELECT prefix, firstname, lastname, email FROM teacher WHERE id = ?", [teacher_id])
+    db_data = exec_res.fetchall()
+    sql_closedb()
+    if len(db_data) > 0:
+        http_res.data = json.dumps(db_data[0]) + "\n"
+        return http_res
+    abort(400)
