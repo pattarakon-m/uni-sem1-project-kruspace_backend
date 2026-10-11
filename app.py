@@ -7,9 +7,6 @@ app = Flask(__name__)
 api_base = "/api/v0"
 db_path = "./database.db"
 
-@app.route("/")
-def root():
-    return "testttttttttttttttttttt"
 # DB RELATED PART
 
 def sql_opendb():
@@ -39,7 +36,22 @@ def sql_prepare():
 
 sql_prepare()
 
-@app.route("/")
+# LOGIN / AUTH
+
+def is_login_correct(email, password):
+    return True # TODO
+
+def is_logged_in(teacher_id, session_id):
+    return True # TODO
+
+# ACTUAL SERVER FUNC
+
+## ADMIN
+
+@app.route("/.admin/new_teacher")
+def new_teacher():
+    return
+
 @app.route(api_base + "/")
 @app.route(api_base + "/students")
 @app.route(api_base + "/teacher_info")
