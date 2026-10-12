@@ -11,16 +11,16 @@ db_path = "./database.db"
 # DB RELATED PART
 
 def sql_opendb():
-    db = getattr(g, "_database", None)
+    db = getattr(g, "db", None)
     def dict_factory(cursor, row):
         return dict((cursor.description[i][0], value) for i, value in enumerate(row))
     if db is None:
-        db = g._database = sqlite3.connect(db_path)
+        db = g.db = sqlite3.connect(db_path)
         db.row_factory = dict_factory
     return db
 
 def sql_closedb():
-    db = getattr(g, "_database", None)
+    db = getattr(g, "db", None)
     if db:
         db.commit()
         db.close()
