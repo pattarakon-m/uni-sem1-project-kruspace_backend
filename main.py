@@ -4,7 +4,7 @@ import json
 import os
 import base64
 
-app = Flask(__name__)
+app = Flask("KruSpace")
 api_base = "/api/v0"
 db_path = "./database.db"
 
@@ -110,3 +110,6 @@ def teacher_info():
         http_res.data = json.dumps(teacher_data) + "\n"
         return http_res
     abort(400)
+
+if __name__ == "__main__":
+    app.run(host="localhost", port=5000)

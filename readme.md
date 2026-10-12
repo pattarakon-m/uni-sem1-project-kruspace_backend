@@ -11,12 +11,12 @@ pip3 install flask
 
 # Run
 ```sh
-flask run
+python3 main.py
 ```
 
 ## Run with mockup data
 ```sh
 cat sql/*.sql | sqlite3 database.db
 cat test/create-teachers.sql | sqlite3 database.db
-flask run
+python3 main.py
 ```
