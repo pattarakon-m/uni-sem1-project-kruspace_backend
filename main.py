@@ -64,7 +64,6 @@ def new_teacher():
 @app.route(api_base + "/")
 @app.route(api_base + "/students")
 @app.route(api_base + "/attendent")
-@app.route(api_base + "/assignment/<action>") # info, add, edit_score
 @app.route(api_base + "/calendar/<action>")
 @app.route(api_base + "/file/<action>") # info, upload, download
 @app.route(api_base + "/search/<category_to_search>") # student, file, assignment, attendent
@@ -112,6 +111,30 @@ def teacher_info():
         if teacher_data["profile_img"]:
             teacher_data["profile_img"] = base64.b64encode(teacher_data["profile_img"]).decode()
         http_res.data = json.dumps(teacher_data) + "\n"
+        return http_res
+    abort(400)
+
+
+
+# using PUT/PATCH/DELETE here is against rfc2068 HTTP/1.1
+@app.route(api_base + "/assignment/<action>", methods=["GET", "POST"]) # info, list, add, edit_score
+def assignment(action):
+    session_id = request.cookies.get("session_id")
+    teacher_id = request.cookies.get("teacher_id")
+    if not is_logged_in(teacher_id, session_id):
+        abort(401)
+    assignment_id = request.args.get("assignment_id")
+    http_res = make_response()
+    http_res.headers["Content-Type"] = "application/json"
+
+    db = sql_opendb()
+    assignments = db.cursor().execute(
+        "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ? AND id = ?",
+        [teacher_id, assignment_id]
+    ).fetchall()
+    sql_closedb()
+    if len(assignments) > 0:
+        http_res.data = json.dumps(assignments[0]) + "\n"
         return http_res
     abort(400)
 

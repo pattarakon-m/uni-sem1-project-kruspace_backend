@@ -1,11 +1,11 @@
 {
     "assignment_id": 90098,
     "name": "trigonometry functions",
-    "topic": "trigonometry",
     "subject": "math",
-    "class": "grade 8",
+    "topic": "trigonometry",
+    "class": 8,
+    "room": 1,
+    "max_score": 10,
     "teacher_id": 654321, 
-    "full_score": 10,
-    "comment": "TODO"
-    "date": 1790644126,
+    "create_at": 1790644126
 }
