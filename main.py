@@ -45,6 +45,12 @@ def is_login_correct(email, password):
 def is_logged_in(teacher_id, session_id):
     return True # TODO
 
+def auto_abort_unauthorized(request):
+    session_id = request.cookies.get("session_id")
+    teacher_id = request.cookies.get("teacher_id")
+    if not is_logged_in(teacher_id, session_id):
+        abort(401)
+
 # ACTUAL SERVER FUNC
 
 ## ADMIN
@@ -70,10 +76,8 @@ def dummyHandler(**kwargs):
 
 @app.route(api_base + "/teacher_info", methods=['GET', 'POST'])
 def teacher_info():
-    session_id = request.cookies.get("session_id")
+    auto_abort_unauthorized(request)
     teacher_id = request.cookies.get("teacher_id")
-    if not is_logged_in(teacher_id, session_id):
-        abort(401)
     db = None
     # Don't worry about non exists teacher, is_logged_in already check it for us.
     if request.method == 'POST':
