@@ -117,10 +117,8 @@ def teacher_info():
 
 @app.get(api_base + "/assignment/info")
 def assignment_info():
-    session_id = request.cookies.get("session_id")
+    auto_abort_unauthorized(request)
     teacher_id = request.cookies.get("teacher_id")
-    if not is_logged_in(teacher_id, session_id):
-        abort(401)
     assignment_id = request.args.get("assignment_id")
     http_res = make_response()
     http_res.headers["Content-Type"] = "application/json"
@@ -137,10 +135,8 @@ def assignment_info():
 
 @app.get(api_base + "/assignment/list")
 def assignment_list():
-    session_id = request.cookies.get("session_id")
+    auto_abort_unauthorized(request)
     teacher_id = request.cookies.get("teacher_id")
-    if not is_logged_in(teacher_id, session_id):
-        abort(401)
     http_res = make_response()
     http_res.headers["Content-Type"] = "application/json"
     db = sql_opendb()
@@ -156,10 +152,8 @@ def assignment_list():
 
 @app.post(api_base + "/assignment/add")
 def assignment_add():
-    session_id = request.cookies.get("session_id")
+    auto_abort_unauthorized(request)
     teacher_id = request.cookies.get("teacher_id")
-    if not is_logged_in(teacher_id, session_id):
-        abort(401)
     http_res = make_response()
     http_res.headers["Content-Type"] = "application/json"
     req = request.get_json()
@@ -201,10 +195,8 @@ def assignment_add():
 
 @app.post(api_base + "/assignment/edit")
 def assignment_edit():
-    session_id = request.cookies.get("session_id")
+    auto_abort_unauthorized(request)
     teacher_id = request.cookies.get("teacher_id")
-    if not is_logged_in(teacher_id, session_id):
-        abort(401)
     assignment_id = request.args.get("assignment_id")
     http_res = make_response()
     http_res.headers["Content-Type"] = "application/json"
