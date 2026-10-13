@@ -3,6 +3,7 @@ import sqlite3
 import json
 import os
 import base64
+import re
 
 app = Flask("KruSpace")
 api_base = "/api/v0"
@@ -30,6 +31,10 @@ def sql_prepare():
     db = sqlite3.connect(db_path)
     db_cur = db.cursor()
     for query_name in os.listdir("./sql"):
+        if not query_name.endswith(".sql"):
+            continue
+        if not re.match('[0-9]{2}-', query_name):
+            continue
         f = open("./sql/" + query_name)
         query = f.read()
         db_cur.executescript(query)
