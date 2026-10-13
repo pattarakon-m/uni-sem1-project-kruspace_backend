@@ -24,6 +24,7 @@ def sql_closedb():
     if db:
         db.commit()
         db.close()
+        g.db = None
 
 def sql_prepare():
     db = sqlite3.connect(db_path)
@@ -114,6 +115,25 @@ def teacher_info():
         return http_res
     abort(400)
 
+### ASSIGNMENT
+# TODO: Use flask's blueprint
+
+def get_assignment_obj(assignment_id, teacher_id):
+    '''
+    Query assignment object by assignment_id and teacher_id
+    It automatically open and close the databse
+    '''
+    if assignment_id is None or teacher_id is None:
+        return None
+    db = sql_opendb()
+    assignments = db.cursor().execute(
+            "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ? AND id = ?",
+            [teacher_id, assignment_id]
+        ).fetchall()
+    sql_closedb()
+    if len(assignments) == 1:
+        return assignments[0]
+    return None
 
 @app.get(api_base + "/assignment/info")
 def assignment_info():
@@ -122,14 +142,9 @@ def assignment_info():
     assignment_id = request.args.get("assignment_id")
     http_res = make_response()
     http_res.headers["Content-Type"] = "application/json"
-    db = sql_opendb()
-    assignments = db.cursor().execute(
-            "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ? AND id = ?",
-            [teacher_id, assignment_id]
-        ).fetchall()
-    sql_closedb()
-    if len(assignments) == 1:
-        http_res.data = json.dumps(assignments[0]) + "\n"
+    assignment = get_assignment_obj(assignment_id, teacher_id)
+    if assignment:
+        http_res.data = json.dumps(assignment) + "\n"
         return http_res
     abort(400)
 
@@ -139,8 +154,7 @@ def assignment_list():
     teacher_id = request.cookies.get("teacher_id")
     http_res = make_response()
     http_res.headers["Content-Type"] = "application/json"
-    db = sql_opendb()
-    assignments = db.cursor().execute(
+    assignments = sql_opendb().cursor().execute(
             "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ?",
             [teacher_id]
         ).fetchall()
@@ -180,18 +194,14 @@ def assignment_add():
             continue
         query = "UPDATE assignment SET %s = ? WHERE id = ?" % field # this is safe, user can't control `field`
         db_cur.execute(query, [req[field], assignment_id])
-        db_cur.execute("UPDATE assignment SET update_at = datetime() WHERE id = ?", [assignment_id])
+    db_cur.execute("UPDATE assignment SET update_at = datetime() WHERE id = ?", [assignment_id])
     db.commit()
-    assignments = db.cursor().execute(
-            "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ? AND id = ?",
-            [teacher_id, assignment_id]
-        ).fetchall()
     sql_closedb()
-    if len(assignments) == 1:
-        http_res.data = json.dumps(assignments[0]) + "\n"
+    assignment = get_assignment_obj(assignment_id, teacher_id)
+    if assignment:
+        http_res.data = json.dumps(assignment) + "\n"
         return http_res
     abort(400)
-
 
 @app.post(api_base + "/assignment/edit")
 def assignment_edit():
@@ -211,14 +221,10 @@ def assignment_edit():
         db_cur.execute(query, [req[field], assignment_id])
     db_cur.execute("UPDATE assignment SET update_at = datetime() WHERE id = ?", [assignment_id])
     db.commit()
-
-    assignments = db.cursor().execute(
-        "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ? AND id = ?",
-        [teacher_id, assignment_id]
-    ).fetchall()
     sql_closedb()
-    if len(assignments) == 1:
-        http_res.data = json.dumps(assignments[0]) + "\n"
+    assignment = get_assignment_obj(assignment_id, teacher_id)
+    if assignment:
+        http_res.data = json.dumps(assignment) + "\n"
         return http_res
     abort(400)
 
