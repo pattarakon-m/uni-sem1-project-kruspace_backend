@@ -35,6 +35,7 @@ Student ID (sid) |                | String
   "class": number,
   "room": number,
   "max_score": number
+  "due": "YYYY-MM-DD HH:MM:SS" or null (no deadline)
   "create_at": "YYYY-MM-DD HH:MM:SS"
 }
 ```
@@ -52,6 +53,7 @@ Student ID (sid) |                | String
 		"class": number,
 		"room": number,
 		"max_score": number
+		"due": "YYYY-MM-DD HH:MM:SS" or null (no deadline)
 		"create_at": "YYYY-MM-DD HH:MM:SS"
 	},
 	...
@@ -84,6 +86,7 @@ Student ID (sid) |                | String
   "class": number (optional),
   "room": number (optional),
   "max_score": number (optional)
+  "due": "YYYY-MM-DD HH:MM:SS" (optional)
 }
 ```
 - response body (see `/assignment/info`)

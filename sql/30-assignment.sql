@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS assignment (
     room INTEGER DEFAULT 1,
     max_score INTEGER DEFAULT 0,
     teacher_id INTEGER NOT NULL,
+    due TEXT, -- YYYY-MM-DD HH:MM:SS
 
     create_at TEXT,
     update_at TEXT,

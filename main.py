@@ -127,7 +127,7 @@ def get_assignment_obj(assignment_id, teacher_id):
         return None
     db = sql_opendb()
     assignments = db.cursor().execute(
-            "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ? AND id = ?",
+            "SELECT id, name, subject, topic, class, room, max_score, due, create_at FROM assignment WHERE teacher_id = ? AND id = ?",
             [teacher_id, assignment_id]
         ).fetchall()
     sql_closedb()
@@ -155,7 +155,7 @@ def assignment_list():
     http_res = make_response()
     http_res.headers["Content-Type"] = "application/json"
     assignments = sql_opendb().cursor().execute(
-            "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ?",
+            "SELECT id, name, subject, topic, class, room, max_score, due, create_at FROM assignment WHERE teacher_id = ?",
             [teacher_id]
         ).fetchall()
     sql_closedb()
@@ -189,7 +189,7 @@ def assignment_add():
         [req["name"], req["subject"], req["topic"], req["class"], teacher_id]
     ).fetchall()[0]["id"]
     db.commit()
-    for field in ["room", "max_score"]:
+    for field in ["room", "max_score", "due"]:
         if field not in req:
             continue
         query = "UPDATE assignment SET %s = ? WHERE id = ?" % field # this is safe, user can't control `field`
@@ -214,7 +214,7 @@ def assignment_edit():
     req = request.get_json()
     db = sql_opendb()
     db_cur = db.cursor()
-    for field in ["name", "subject", "topic", "class", "room", "max_score"]:
+    for field in ["name", "subject", "topic", "class", "room", "max_score", "due"]:
         if field not in req:
             continue
         query = "UPDATE assignment SET %s = ? WHERE id = ?" % field # this is safe, user can't control `field`
