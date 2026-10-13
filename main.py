@@ -68,9 +68,9 @@ def new_teacher():
     return
 
 ## API
+# TODO: Proper error message/response
 
 @app.route(api_base + "/")
-@app.route(api_base + "/students")
 @app.route(api_base + "/attendent")
 @app.route(api_base + "/calendar/<action>")
 @app.route(api_base + "/file/<action>") # info, upload, download
@@ -234,6 +234,118 @@ def assignment_edit():
         http_res.data = json.dumps(assignment) + "\n"
         return http_res
     abort(400)
+
+@app.get(api_base + "/student/list")
+def student_list():
+    auto_abort_unauthorized(request)
+    teacher_id = request.cookies.get("teacher_id")
+    # assume single student -> single teacher
+    # pros: easy to deal with
+    # cons: duplicate data
+    db = sql_opendb()
+    db_cur = db.cursor()
+    students_data = db_cur.execute(
+        "SELECT student_id, prefix, firstname, lastname, sex FROM student WHERE teacher_id = ?",
+        [teacher_id]
+    ).fetchall()
+    sql_closedb()
+    http_res = make_response()
+    http_res.headers["Content-Type"] = "application/json"
+    http_res.data = json.dumps(students_data) + "\n"
+    return http_res
+
+@app.post(api_base + "/student/add")
+def student_add():
+    auto_abort_unauthorized(request)
+    teacher_id = request.cookies.get("teacher_id")
+    # assume single student -> single teacher
+    # pros: easy to deal with
+    # cons: duplicate data
+    req = request.get_json()
+    for field in ["student_id", "firstname", "lastname"]:
+        if field not in req:
+            abort(400)
+    student_id = req["student_id"]
+    db = sql_opendb()
+    db_cur = db.cursor()
+    try:
+        db_cur.execute(
+            "INSERT INTO student (student_id, firstname, lastname, teacher_id, create_at) VALUES (?, ?, ?, ?, datetime())",
+            [req["student_id"], req["firstname"], req["lastname"], teacher_id]
+        )
+        for field in ["firstname", "lastname", "sex", "prefix"]:
+            if field not in req:
+                continue
+            query = "UPDATE student SET %s = ? WHERE student_id = ?" % field # this is safe, user can't control `field`
+            db_cur.execute(query, [req[field], student_id])
+    except Exception as e:
+        sql_closedb()
+        print(e)
+        return "student id '%s' already exists in the database, consider using `edit` instead.\n" % student_id, 400
+    db_cur.execute("UPDATE student SET update_at = datetime() WHERE student_id = ?", [student_id])
+    db.commit()
+    students_data = db_cur.execute(
+        "SELECT student_id, prefix, firstname, lastname, sex FROM student WHERE student_id = ?",
+        [student_id]
+    ).fetchall()[0]
+    sql_closedb()
+    http_res = make_response()
+    http_res.headers["Content-Type"] = "application/json"
+    http_res.data = json.dumps(students_data) + "\n"
+    return http_res
+
+@app.post(api_base + "/student/edit")
+def student_edit():
+    auto_abort_unauthorized(request)
+    teacher_id = request.cookies.get("teacher_id")
+    student_id = request.args.get("student_id")
+    # assume single student -> single teacher
+    # pros: easy to deal with
+    # cons: duplicate data
+    req = request.get_json()
+    db = sql_opendb()
+    db_cur = db.cursor()
+    for field in ["firstname", "lastname", "sex", "prefix"]:
+        if field not in req:
+            continue
+        query = "UPDATE student SET %s = ? WHERE student_id = ?" % field # this is safe, user can't control `field`
+        db_cur.execute(query, [req[field], student_id])
+    db_cur.execute("UPDATE student SET update_at = datetime() WHERE student_id = ?", [student_id])
+    db.commit()
+    students_data = db_cur.execute(
+        "SELECT student_id, prefix, firstname, lastname, sex FROM student WHERE student_id = ? AND teacher_id = ?",
+        [student_id, teacher_id]
+    ).fetchall()
+    sql_closedb()
+    http_res = make_response()
+    http_res.headers["Content-Type"] = "application/json"
+    if len(students_data) > 0:
+        http_res.data = json.dumps(students_data[0]) + "\n"
+        return http_res
+    return "student id '%s' is not in the database\n" % student_id, 400
+
+@app.post(api_base + "/student/remove")
+def student_remove():
+    auto_abort_unauthorized(request)
+    teacher_id = request.cookies.get("teacher_id")
+    student_id = request.args.get("student_id")
+    if student_id is None:
+        return "server expected `student_id` parameter\n", 400
+    # assume single student -> single teacher
+    # pros: easy to deal with
+    # cons: duplicate data
+    db = sql_opendb()
+    db_cur = db.cursor()
+    if db_cur.execute("SELECT COUNT(student_id) AS count FROM student WHERE student_id = ? AND teacher_id = ?", [student_id, teacher_id]).fetchall()[0]["count"] < 1:
+        sql_closedb()
+        return "student id '%s' is not in the database\n" % student_id, 400
+    db_cur.execute("DELETE FROM student WHERE student_id = ? AND teacher_id = ?", [student_id, teacher_id])
+    db.commit()
+    sql_closedb()
+    http_res = make_response()
+    http_res.headers["Content-Type"] = "application/json"
+    http_res.data = "{}\n"
+    return http_res
 
 if __name__ == "__main__":
     app.run(host="localhost", port=5000)

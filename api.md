@@ -23,6 +23,52 @@ Student ID (sid) |                | String
 - GET: all students attendant
 - POST: update single or mulitple student
 
+
+### `/student/list` DONE
+- GET: list students data added by requested teacher
+- response body
+```json
+[
+  {
+    "student_id": string,
+    "prefix": string,
+    "firstname": string,
+    "lastname": string,
+    "sex": string
+  },
+  ...
+]
+```
+
+### `/student/add` DONE
+- POST: add student data
+- request/response body
+```json
+{
+  "student_id": string (require),
+  "firstname": string (require),
+  "lastname": string (require),
+  "prefix": string,
+  "sex": string
+}
+```
+
+### `/student/edit` DONE
+- POST: edit student data by `student_id` parameter
+- request body
+```json
+{
+  "firstname": string,
+  "lastname": string,
+  "prefix": string,
+  "sex": string
+}
+```
+- response body (see `/student/add`)
+
+### `/student/remove` DONE
+- POST: remove student data by `student_id` parameter
+
 ### `/assignment/info` DONE
 - GET: assignment info of `assignment_id` parameter
 - response body
