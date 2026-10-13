@@ -117,7 +117,7 @@ def teacher_info():
 
 
 # using PUT/PATCH/DELETE here is against rfc2068 HTTP/1.1
-@app.route(api_base + "/assignment/<action>", methods=["GET", "POST"]) # info, list, add, edit_score
+@app.route(api_base + "/assignment/<action>", methods=["GET", "POST"]) # info, list, add, edit
 def assignment(action):
     session_id = request.cookies.get("session_id")
     teacher_id = request.cookies.get("teacher_id")
@@ -128,13 +128,67 @@ def assignment(action):
     http_res.headers["Content-Type"] = "application/json"
 
     db = sql_opendb()
-    assignments = db.cursor().execute(
-        "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ? AND id = ?",
-        [teacher_id, assignment_id]
-    ).fetchall()
+    assignments = []
+    if request.method == 'POST' and action not in ['add', 'edit']:
+        abort(405)
+    if request.method == 'GET' and action not in ['list', 'info']:
+        abort(405)
+
+    # TODO: too much if else, factor out to separate route
+    if action == "add":
+        req = request.get_json()
+        db = sql_opendb()
+        db_cur = db.cursor()
+        for field in ["name", "subject", "topic", "class"]:
+            if field not in req:
+                abort(400)
+        assignment_id = db_cur.execute("""
+            INSERT INTO assignment (
+                name,
+                subject,
+                topic,
+                class,
+                teacher_id,
+                create_at
+            ) VALUES (?, ?, ?, ?, ?, datetime())
+            RETURNING id""",
+            [req["name"], req["subject"], req["topic"], req["class"], teacher_id]
+        ).fetchall()[0]["id"]
+        db.commit()
+        for field in ["room", "max_score"]:
+            if field not in req:
+                continue
+            query = "UPDATE assignment SET %s = ? WHERE id = ?" % field # this is safe, user can't control `field`
+            db_cur.execute(query, [req[field], assignment_id])
+        db_cur.execute("UPDATE assignment SET update_at = datetime() WHERE id = ?", [assignment_id])
+        db.commit()
+    if action == "edit":
+        req = request.get_json()
+        db = sql_opendb()
+        db_cur = db.cursor()
+        for field in ["name", "subject", "topic", "class", "room", "max_score"]:
+            if field not in req:
+                continue
+            query = "UPDATE assignment SET %s = ? WHERE id = ?" % field # this is safe, user can't control `field`
+            db_cur.execute(query, [req[field], assignment_id])
+        db_cur.execute("UPDATE assignment SET update_at = datetime() WHERE id = ?", [assignment_id])
+        db.commit()
+    if action == "list":
+        assignments = db.cursor().execute(
+            "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ?",
+            [teacher_id]
+        ).fetchall()
+    else: # info, add, edit
+        assignments = db.cursor().execute(
+            "SELECT id, name, subject, topic, class, room, max_score, create_at FROM assignment WHERE teacher_id = ? AND id = ?",
+            [teacher_id, assignment_id]
+        ).fetchall()
     sql_closedb()
-    if len(assignments) > 0:
+    if len(assignments) == 1:
         http_res.data = json.dumps(assignments[0]) + "\n"
+        return http_res
+    if len(assignments) > 1:
+        http_res.data = json.dumps(assignments) + "\n"
         return http_res
     abort(400)
 

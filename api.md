@@ -23,11 +23,70 @@ Student ID (sid) |                | String
 - GET: all students attendant
 - POST: update single or mulitple student
 
-### /assignment
-- GET: all students, assignment and score
-	- can be **query** by **sid** GET parameter
-- POST: update or add student(s) assignment score
-- DELETE: parameter **assignment_id**
+### `/assignment/info` DONE
+- GET: assignment info of `assignment_id` parameter
+- response body
+```json
+{
+  "id": number,
+  "name": string,
+  "subject": string,
+  "topic": string,
+  "class": number,
+  "room": number,
+  "max_score": number
+  "create_at": "YYYY-MM-DD HH:MM:SS"
+}
+```
+
+### `/assignment/list` DONE
+- GET: list of assignment created by teacher whom request it.
+- response body
+```json
+[
+	{
+		"id": number,
+		"name": string,
+		"subject": string,
+		"topic": string,
+		"class": number,
+		"room": number,
+		"max_score": number
+		"create_at": "YYYY-MM-DD HH:MM:SS"
+	},
+	...
+]
+```
+
+### `/assignment/add` DONE
+- POST: add new assignment, returns added assignment object
+- request body
+```json
+{
+  "name": string (require),
+  "subject": string (require),
+  "topic": string (require),
+  "class": number (1-12) (require),
+  "room": number (default 1),
+  "max_score": (default 0)
+}
+```
+- response body (see `/assignment/info`)
+
+### `/assignment/edit` DONE
+- POST: edit assignment pointed by `assignment_id` parameter, returns added assignment object
+- request body
+```json
+{
+  "name": string (optional),
+  "subject": string (optional),
+  "topic": string (optional),
+  "class": number (optional),
+  "room": number (optional),
+  "max_score": number (optional)
+}
+```
+- response body (see `/assignment/info`)
 
 
 ### /calendar/event

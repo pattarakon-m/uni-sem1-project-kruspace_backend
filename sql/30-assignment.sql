@@ -1,9 +1,9 @@
 -- ASSIGNMENT
 CREATE TABLE IF NOT EXISTS assignment (
     id INTEGER PRIMARY KEY,
-    name TEXT,
-    subject TEXT,   -- SHOULD IT BE ANOTHER TABLE?
-    topic TEXT,     -- SHOULD IT BE ANOTHER TABLE?
+    name TEXT NOT NULL,
+    subject TEXT NOT NULL,   -- SHOULD IT BE ANOTHER TABLE?
+    topic TEXT NOT NULL,     -- SHOULD IT BE ANOTHER TABLE?
     class INTEGER CHECK (1 <= class AND class <= 12) NOT NULL,
     room INTEGER DEFAULT 1,
     max_score INTEGER DEFAULT 0,
