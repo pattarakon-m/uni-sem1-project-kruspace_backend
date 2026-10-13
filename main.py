@@ -49,6 +49,8 @@ def is_logged_in(teacher_id, session_id):
 def auto_abort_unauthorized(request):
     session_id = request.cookies.get("session_id")
     teacher_id = request.cookies.get("teacher_id")
+    if session_id is None or teacher_id is None:
+        abort(401)
     if not is_logged_in(teacher_id, session_id):
         abort(401)
 
