@@ -16,7 +16,6 @@ python3 main.py
 
 ## Run with mockup data
 ```sh
-cat sql/*.sql | sqlite3 database.db
-cat test/create-teachers.sql | sqlite3 database.db
+python3 test/insert-data.py
 python3 main.py
 ```

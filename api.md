@@ -13,16 +13,8 @@ Student ID  |                     | String
 ### method
 - GET read data, use url query
 - POST update, add, edit data. response response with process status
-	- **should it also return the edited data?**
-- DELETE mark data as deleted
-
-
 
 ## path(s)
-### /attendant
-- GET: all students attendant
-- POST: update single or mulitple student
-
 
 ### `/student/list` DONE
 - GET: list students data added by requested teacher
@@ -178,7 +170,7 @@ Student ID  |                     | String
 ```
 
 ### `/attendant` DONE
-- parameter: `date` ((YYYY-MM-DD)
+- parameter: `date` (YYYY-MM-DD)
 - GET: returns list of student attendant in `date`
 	- resonse body
 ```json
@@ -225,22 +217,6 @@ Student ID  |                     | String
 - GET: return current month events
 ### /calendar/notification
 - GET: weekly (next 7 days) events
-
-### /students
-- GET: returns
-	- sid
-	- firstname
-	- lastname
-	- sex
-	- prefix?
-- POST: add and update records
-	- body
-		- sid(update)
-		- firstname
-		- lastname
-		- sex
-		- prefix
-- DELETE: delete from db
 
 ### `/teacher_info` DONE
 - GET (get teacher profile)
