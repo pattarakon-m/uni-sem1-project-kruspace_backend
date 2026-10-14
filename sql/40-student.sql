@@ -1,5 +1,6 @@
 -- STUDENT TABLE
 CREATE TABLE IF NOT EXISTS student (
+	rowid INTEGER PRIMARY KEY,
 	student_id TEXT NOT NULL,
 	teacher_id INTEGER NOT NULL,
 	firstname TEXT NOT NULL,

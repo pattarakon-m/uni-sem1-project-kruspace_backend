@@ -1,0 +1,9 @@
+8, Physics, Force, Newton's 1st Law
+8, Physics, Force, Newton's 2nd Law
+3, Math, Operator, Addition
+3, Math, Operator, Subtraction 
+3, Math, Operator, Multiplication 
+3, Math, Operator, Division
+5, Social, Religion, Buddhism
+5, Social, Religion, Chritianity
+5, Social, Religion, Islam 
