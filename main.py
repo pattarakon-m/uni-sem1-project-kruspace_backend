@@ -202,6 +202,11 @@ def assignment_add():
         query = "UPDATE assignment SET %s = ? WHERE id = ?" % field # this is safe, user can't control `field`
         db_cur.execute(query, [req[field], assignment_id])
     db_cur.execute("UPDATE assignment SET update_at = datetime() WHERE id = ?", [assignment_id])
+    db_cur.execute("""
+        INSERT OR IGNORE INTO score (student_rowid, assignment_id, update_at)
+        SELECT student.rowid AS student_rowid, ? AS assignment_id, datetime() AS update_at
+          FROM student WHERE teacher_id = ?
+    """, [assignment_id, teacher_id])
     db.commit()
     sql_closedb()
     assignment = get_assignment_obj(assignment_id, teacher_id)
@@ -345,6 +350,71 @@ def student_remove():
     http_res = make_response()
     http_res.headers["Content-Type"] = "application/json"
     http_res.data = "{}\n"
+    return http_res
+
+@app.get(api_base + "/score")
+def score_list():
+    auto_abort_unauthorized(request)
+    teacher_id = request.cookies.get("teacher_id")
+    assignment_id = request.args.get("assignment_id")
+    db = sql_opendb()
+    db_cur = db.cursor()
+    assignment_info = db_cur.execute(
+        "SELECT id, name, topic, subject, due, max_score, create_at FROM assignment WHERE id = ? AND teacher_id = ?",
+        [assignment_id, teacher_id]
+    ).fetchone()
+    if assignment_info is None:
+        return "assignment id '%s' not found\n" % assigment_id, 400
+    student_scores = db_cur.execute("""
+        SELECT student_id, prefix, firstname, lastname, score
+          FROM (
+            student JOIN score
+            ON student.rowid = score.student_rowid
+        ) WHERE assignment_id = ? AND teacher_id = ?""",
+        [assignment_id, teacher_id]
+    ).fetchall()
+    sql_closedb()
+    http_res = make_response()
+    http_res.headers["Content-Type"] = "application/json"
+    http_res.data = json.dumps({"assignment_info": assignment_info, "scores": student_scores}) + "\n"
+    return http_res
+
+@app.post(api_base + "/score")
+def score_edit():
+    auto_abort_unauthorized(request)
+    teacher_id = request.cookies.get("teacher_id")
+    assignment_id = request.args.get("assignment_id")
+
+    # validate body
+    req = request.get_json()
+    for record in req:
+        for field in ["score", "student_id"]:
+            if field not in record:
+                abort(400)
+
+
+    db = sql_opendb()
+    db_cur = db.cursor()
+
+    # validate assignment_id
+    if db_cur.execute("SELECT id FROM assignment WHERE id = ? AND teacher_id = ?", [assignment_id, teacher_id]).fetchone() is None:
+        return "assignment id '%s' not found\n" % assigment_id, 400
+
+    # TODO: make sure `score` <= `max_score`
+    records = [ [record["score"], assignment_id, record["student_id"], teacher_id] for record in req ]
+    db_cur.executemany("""
+        UPDATE score SET update_at = datetime(), score = ?
+        WHERE score.assignment_id = ?
+          AND score.student_rowid = (
+            SELECT rowid FROM student WHERE student_id = ? AND teacher_id = ?
+          )
+        """,
+        records
+    )
+    sql_closedb()
+    http_res = make_response()
+    http_res.headers["Content-Type"] = "application/json"
+    http_res.data = json.dumps({}) + "\n"
     return http_res
 
 if __name__ == "__main__":

@@ -138,6 +138,46 @@ Student ID  |                     | String
 - response body (see `/assignment/info`)
 
 
+### `/score` DONE
+- parameter: `assigment_id`
+- GET: returns assignment information and it's score
+	- resonse body
+```json
+{
+	"assignment_info": {
+		"id": number,
+		"name": string,
+		"topic": string,
+		"subject": string,
+		"due": string,
+		"max_score": number
+		"create_at": string
+	},
+	"score": [
+		{
+			"student_id": string,
+			"prefix": string,
+			"firstname": string,
+			"lastname": string,
+			"score": number
+		},
+		...
+	]
+}
+```
+- POST: edit students' assignment score, returns empty json object
+	- request body
+```json
+[
+	{
+		"student_id": string (require),
+		"score": number (require)
+	},
+	...
+]
+```
+
+
 ### /calendar/event
 - GET: return events (everything)
 	- parameters

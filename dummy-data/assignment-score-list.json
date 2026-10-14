@@ -4,29 +4,34 @@
         "name": "trigonometry functions",
         "topic": "trigonometry",
         "subject": "math",
-        "class": "grade 8",
+        "class": 8,
+        "room": 1,
+        "max_score": 10,
         "teacher_id": 654321, 
-        "full_score": 10,
-        "date": 1790644126,
-        "comment": "see assiment-info-single.json"
+        "due": "2027-01-01 00:00:00",
+        "create_at": "2026-01-01 00:00:00"
     },
     "scores": [
+         {
+            "student_id": "ae51f47027b",
+            "prefix": null,
+            "firstname": "Yuki",
+            "lastname": "Nagato",
+            "score": 1000
+        },
         {
             "student_id": "69420-67",
-            "score": 5,
-            "note": "",
+            "prefix": "Mr.",
             "firstname": "foo",
             "lastname": "bar",
-            "prefix": "Mr.",
-            "comment": "JOIN students USING student_id"
+            "score": 5
         },
         {
             "student_id": "13370-69",
-            "score": 6,
-            "note": "",
+            "prefix": "Ms.",
             "firstname": "Jane",
             "lastname": "Doe",
-            "prefix": "Ms."
+            "score": 6
         }
     ]
 }

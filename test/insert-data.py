@@ -60,6 +60,15 @@ if __name__ == "__main__":
             [[i] + assignments[(assignment_index + j) % len(assignments)] for j in range(3)]
         )
 
+    db_cur.execute("""
+        INSERT OR IGNORE INTO score (student_rowid, assignment_id)
+            SELECT student.rowid AS student_rowid, assignment.id AS assignment_id 
+                FROM (
+                    student JOIN assignment 
+                    ON student.teacher_id = assignment.teacher_id
+                )
+    """)
+
     db.commit()
     db.close()
 
