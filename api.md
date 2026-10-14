@@ -1,9 +1,9 @@
 ﻿# Server API
 ### data type
-Data | Expected Value | Type
-:---             |:---            |---
-Date & Time      | Unix timestamp | Number
-Student ID (sid) |                | String
+Data        | Expected Value      | Type
+:---        |:---                 |---
+Date & Time | YYYY-MM-DD HH:MM:SS | String
+Student ID  |                     | String
 
 ### auth
 - session cookie(s)
@@ -13,7 +13,7 @@ Student ID (sid) |                | String
 ### method
 - GET read data, use url query
 - POST update, add, edit data. response response with process status
-	-  **should it also return the edited data?**
+	- **should it also return the edited data?**
 - DELETE mark data as deleted
 
 
@@ -29,14 +29,14 @@ Student ID (sid) |                | String
 - response body
 ```json
 [
-  {
-    "student_id": string,
-    "prefix": string,
-    "firstname": string,
-    "lastname": string,
-    "sex": string
-  },
-  ...
+	{
+		"student_id": string,
+		"prefix": string,
+		"firstname": string,
+		"lastname": string,
+		"sex": string
+	},
+	...
 ]
 ```
 
@@ -45,11 +45,11 @@ Student ID (sid) |                | String
 - request/response body
 ```json
 {
-  "student_id": string (require),
-  "firstname": string (require),
-  "lastname": string (require),
-  "prefix": string,
-  "sex": string
+	"student_id": string (require),
+	"firstname": string (require),
+	"lastname": string (require),
+	"prefix": string,
+	"sex": string
 }
 ```
 
@@ -58,10 +58,10 @@ Student ID (sid) |                | String
 - request body
 ```json
 {
-  "firstname": string,
-  "lastname": string,
-  "prefix": string,
-  "sex": string
+	"firstname": string,
+	"lastname": string,
+	"prefix": string,
+	"sex": string
 }
 ```
 - response body (see `/student/add`)
@@ -74,15 +74,15 @@ Student ID (sid) |                | String
 - response body
 ```json
 {
-  "id": number,
-  "name": string,
-  "subject": string,
-  "topic": string,
-  "class": number,
-  "room": number,
-  "max_score": number
-  "due": "YYYY-MM-DD HH:MM:SS" or null (no deadline)
-  "create_at": "YYYY-MM-DD HH:MM:SS"
+	"id": number,
+	"name": string,
+	"subject": string,
+	"topic": string,
+	"class": number,
+	"room": number,
+	"max_score": number
+	"due": "YYYY-MM-DD HH:MM:SS" or null (no deadline)
+	"create_at": "YYYY-MM-DD HH:MM:SS"
 }
 ```
 
@@ -111,12 +111,12 @@ Student ID (sid) |                | String
 - request body
 ```json
 {
-  "name": string (require),
-  "subject": string (require),
-  "topic": string (require),
-  "class": number (1-12) (require),
-  "room": number (default 1),
-  "max_score": (default 0)
+	"name": string (require),
+	"subject": string (require),
+	"topic": string (require),
+	"class": number (1-12) (require),
+	"room": number (default 1),
+	"max_score": (default 0)
 }
 ```
 - response body (see `/assignment/info`)
@@ -126,13 +126,13 @@ Student ID (sid) |                | String
 - request body
 ```json
 {
-  "name": string (optional),
-  "subject": string (optional),
-  "topic": string (optional),
-  "class": number (optional),
-  "room": number (optional),
-  "max_score": number (optional)
-  "due": "YYYY-MM-DD HH:MM:SS" (optional)
+	"name": string (optional),
+	"subject": string (optional),
+	"topic": string (optional),
+	"class": number (optional),
+	"room": number (optional),
+	"max_score": number (optional)
+	"due": "YYYY-MM-DD HH:MM:SS" (optional)
 }
 ```
 - response body (see `/assignment/info`)
@@ -172,7 +172,7 @@ Student ID (sid) |                | String
 		- prefix
 - DELETE: delete from db
 
-###  `/teacher_info` DONE
+### `/teacher_info` DONE
 - GET (get teacher profile)
 - POST (update teacher profile)
 
@@ -206,7 +206,7 @@ Student ID (sid) |                | String
 	- with parameter
 		- return the queried result (id, author_id, title, category, target)
 - POST: add/edit data
-	-  body
+	- body
 		- id(edit)
 		- title
 		- category
