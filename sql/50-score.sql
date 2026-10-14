@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS score (
     UNIQUE(assignment_id, student_rowid) ON CONFLICT IGNORE,
     FOREIGN KEY (assignment_id) REFERENCES assignment(id) ON DELETE CASCADE,
     FOREIGN KEY (student_rowid) REFERENCES student(rowid) ON DELETE CASCADE
-)
+);

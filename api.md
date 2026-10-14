@@ -177,6 +177,36 @@ Student ID  |                     | String
 ]
 ```
 
+### `/attendant` DONE
+- parameter: `date` ((YYYY-MM-DD)
+- GET: returns list of student attendant in `date`
+	- resonse body
+```json
+{
+	"date": "YYYY-MM-DD",
+	"attendents": [
+		{
+			"student_id": string,
+			"prefix": string,
+			"firstname": string,
+			"lastname": string,
+			"status": number (0-4) (unknown, missing, attend, late, leave)
+		},
+		...
+	]
+}
+```
+- POST: edit students' attendant, returns empty json body
+	- request body
+```json
+[
+	{
+		"student_id": string (require),
+		"status": number (0-4) (unknown, missing, come, late, leave)
+	},
+	...
+]
+```
 
 ### /calendar/event
 - GET: return events (everything)

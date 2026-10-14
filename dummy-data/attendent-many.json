@@ -1,18 +1,26 @@
 {
-	"attendent_info":  {
-		"date": 1790644126,
-		"comment": "see attendent-single.json"
-	},
-	"attendents": [
+	"date": "2026-10-14",
+	"attendants": [
 		{
-			"status": "มา",
-			"student_id": "69420-67",
-			"comment": "TODO"
+			"student_id": "ae51f47027b",
+			"prefix": "Ms.",
+			"firstname": "Yuki",
+			"lastname": "Nagato",
+			"status": 1
 		},
 		{
-			"status": "ขาด",
-			"student_id": "13370-69",
-			"comment": "TODO"
+			"student_id": "b181045467d",
+			"prefix": null,
+			"firstname": "Sakura",
+			"lastname": "Kinomoto",
+			"status": 1
+		},
+		{
+			"student_id": "6fc1e73f5637",
+			"prefix": null,
+			"firstname": "Makoto",
+			"lastname": "Sakurai",
+			"status": 3
 		}
 	]
 }

@@ -4,6 +4,7 @@ import json
 import os
 import base64
 import re
+import time
 
 app = Flask("KruSpace")
 api_base = "/api/v0"
@@ -71,7 +72,6 @@ def new_teacher():
 # TODO: Proper error message/response
 
 @app.route(api_base + "/")
-@app.route(api_base + "/attendent")
 @app.route(api_base + "/calendar/<action>")
 @app.route(api_base + "/file/<action>") # info, upload, download
 @app.route(api_base + "/search/<category_to_search>") # student, file, assignment, attendent
@@ -411,6 +411,96 @@ def score_edit():
         """,
         records
     )
+    sql_closedb()
+    http_res = make_response()
+    http_res.headers["Content-Type"] = "application/json"
+    http_res.data = json.dumps({}) + "\n"
+    return http_res
+
+@app.get(api_base + "/attendant")
+def attendent_list():
+    # status (0-4) meaning:  NO_DATA, MISSING, ATTEND, LATE, LEAVE
+    auto_abort_unauthorized(request)
+    teacher_id = request.cookies.get("teacher_id")
+    date = request.args.get("date")
+    try:
+        time.strptime(date, "%Y-%m-%d")
+    except:
+        return "invalid date '%s'\n" % date, 400
+
+    db = sql_opendb()
+    db_cur = db.cursor()
+
+    if db_cur.execute("SELECT day FROM attendant_day WHERE day = ? AND teacher_id = ?", [date, teacher_id]).fetchone() is None:
+        row_id = db_cur.execute("INSERT INTO attendant_day (teacher_id, day) VALUES (?, date()) RETURNING rowid", [teacher_id]).fetchone()["rowid"]
+        db_cur.execute("""
+            INSERT INTO attendant_student (student_rowid, attendant_day_rowid)
+            SELECT student.rowid AS student_rowid, ? AS attendant_day_rowid
+            FROM student WHERE teacher_id = ?
+            """, [row_id, teacher_id])
+        db.commit()
+
+    student_attendants =  db_cur.execute("""
+        SELECT student_id, prefix, firstname, lastname, status
+          FROM (
+               student
+          JOIN attendant_day
+          JOIN attendant_student
+            ON student.rowid = attendant_student.student_rowid
+           AND attendant_day.rowid = attendant_student.attendant_day_rowid
+        ) WHERE day = ? AND attendant_day.teacher_id = ?""",
+        [date, teacher_id]
+    ).fetchall()
+
+    sql_closedb()
+    http_res = make_response()
+    http_res.headers["Content-Type"] = "application/json"
+    http_res.data = json.dumps({"date": date, "attendants": student_attendants}) + "\n"
+    return http_res
+
+@app.post(api_base + "/attendant")
+def attendent_edit():
+    auto_abort_unauthorized(request)
+    teacher_id = request.cookies.get("teacher_id")
+    date = request.args.get("date")
+    try:
+        time.strptime(date, "%Y-%m-%d")
+    except:
+        return "invalid date '%s'\n" % date, 400
+
+    # validate body
+    req = request.get_json()
+    for record in req:
+        if "student_id" not in record:
+            abort(400)
+        if "status" not in record:
+            abort(400)
+        if (not 0 <= record["status"]) or (not record["status"] <= 4):
+            return "invalid status range, expect (0-4) but got '%s'\n" % record["status"], 400
+
+    db = sql_opendb()
+    db_cur = db.cursor()
+    # make sure attendant data is exists
+    if db_cur.execute("SELECT day FROM attendant_day WHERE day = ? AND teacher_id = ?", [date, teacher_id]).fetchone() is None:
+        row_id = db_cur.execute("INSERT INTO attendant_day (teacher_id, day) VALUES (?, date()) RETURNING rowid", [teacher_id]).fetchone()["rowid"]
+        db_cur.execute("""
+            INSERT INTO attendant_student (student_rowid, attendant_day_rowid)
+            SELECT student.rowid AS student_rowid, ? AS attendant_day_rowid
+            FROM student WHERE teacher_id = ?
+            """, [row_id, teacher_id])
+        db.commit()
+
+    records = [ [record["status"], date, teacher_id, record["student_id"], teacher_id] for record in req ]
+    # SELECT rowid FROM attendant_day WHERE day = ? AND techer_id = ?
+    # SELECT rowid FROM student WHERE student_id = ? AND teacher_id = ?
+    db_cur.executemany("""
+        UPDATE attendant_student SET status = ?
+         WHERE attendant_student.attendant_day_rowid = (SELECT rowid FROM attendant_day WHERE day        = ? AND teacher_id = ?)
+           AND attendant_student.student_rowid       = (SELECT rowid FROM student       WHERE student_id = ? AND teacher_id = ?)
+        """,
+        records
+    )
+    db.commit()
     sql_closedb()
     http_res = make_response()
     http_res.headers["Content-Type"] = "application/json"
