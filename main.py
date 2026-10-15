@@ -5,6 +5,8 @@ import os
 import base64
 import re
 import time
+import hashlib
+import random
 
 app = Flask("KruSpace")
 api_base = "/api/v0"
@@ -44,13 +46,76 @@ def sql_prepare():
 
 sql_prepare()
 
+# ACTUAL SERVER FUNC
+
+## ADMIN
+
+@app.route("/.admin/")
+def admin_main():
+    db = sql_opendb()
+    res = render_template("admin.html", db_cur = db.cursor())
+    sql_closedb()
+    return res
+
+@app.route("/.admin/teacherlogin")
+def login_bypass():
+    teacher_id = request.args.get("tid")
+    db = sql_opendb()
+    db_cur = db.cursor()
+    session_id = ''.join([hex(i)[2:] for i in random.randbytes(32)])
+    db_cur.execute("INSERT INTO session (teacher_id, session_id, create_at) VALUES (?, ?, unixepoch())", [teacher_id, session_id])
+    sql_closedb()
+    res = make_response()
+    res.set_cookie("teacher_id", "%s" % teacher_id)
+    res.set_cookie("session_id", session_id)
+    res.headers["Content-Type"] = "application/json"
+    res.data = "{\"teacher_id\": %s, \"session_id\": \"%s\" }\n" % (teacher_id, session_id)
+    return res
+
+@app.route("/.admin/newpassword")
+def change_password():
+    teacher_id = request.args.get("tid")
+    password = request.args.get("pass")
+    db = sql_opendb()
+    db_cur = db.cursor()
+    password_salt = random.randbytes(256)
+    password_hash = hashlib.sha256(password_salt + bytes(password, "utf-8")).digest()
+    db_cur.execute("UPDATE teacher SET password_hash = ?, password_salt = ? WHERE id = ?", [password_hash, password_salt, teacher_id])
+    sql_closedb()
+    return make_response()
+
 # LOGIN / AUTH
 
-def is_login_correct(email, password):
-    return True # TODO
+def get_teacher_id_if_login_is_correct(email, password):
+    db = sql_opendb()
+    db_cur = db.cursor()
+    try:
+        password_salt = db_cur.execute("SELECT password_salt FROM teacher WHERE email = ?", [email]).fetchone()["password_salt"]
+    except:
+        sql_closedb()
+        return False
+    password_hash = hashlib.sha256(password_salt + bytes(password, "utf-8")).digest()
+    try:
+        teacher_id = db_cur.execute(
+            "SELECT id FROM teacher WHERE email = ? AND password_hash = ?",
+            [email, password_hash]
+        ).fetchone()["id"]
+    except:
+        sql_closedb()
+        return False
+    sql_closedb()
+    return teacher_id
 
 def is_logged_in(teacher_id, session_id):
-    return True # TODO
+    db = sql_opendb()
+    db_cur = db.cursor()
+    db_cur.execute("DELETE FROM session WHERE unixepoch() - create_at > 2592000")
+    db.commit()
+    if db_cur.execute("SELECT count(*) AS c FROM session WHERE teacher_id = ? AND session_id = ?", [teacher_id, session_id]).fetchone()["c"] == 0:
+        sql_closedb()
+        return False
+    sql_closedb()
+    return True
 
 def auto_abort_unauthorized(request):
     session_id = request.cookies.get("session_id")
@@ -60,13 +125,91 @@ def auto_abort_unauthorized(request):
     if not is_logged_in(teacher_id, session_id):
         abort(401)
 
-# ACTUAL SERVER FUNC
+@app.route("/register", methods = ["POST", "GET"])
+def register():
+    if request.method == "GET":
+        return render_template("register.html")
 
-## ADMIN
+    # POST
+    email     = request.form["email"]
+    firstname = request.form["firstname"]
+    lastname  = request.form["lastname"]
+    password  = request.form["password"]
+    if len(email) == 0:
+        return render_template("register.html", errmsg="Email can't be empty")
+    if len(firstname) == 0:
+        return render_template("register.html", errmsg="Firstname can't be empty")
+    if len(lastname) == 0:
+        return render_template("register.html", errmsg="Lastname can't be empty")
+    if len(password) == 0:
+        return render_template("register.html", errmsg="Password can't be empty")
+    
+    db = sql_opendb()
+    db_cur = db.cursor()
+    if db_cur.execute("SELECT id FROM teacher WHERE email = ?", [email]).fetchone() is not None:
+        return render_template("register.html", errmsg="User with address '%s' already exists, please use another email")
 
-@app.route("/.admin/new_teacher")
-def new_teacher():
-    return
+    password_salt = random.randbytes(256)
+    password_hash = hashlib.sha256(password_salt + bytes(password, "utf-8")).digest()
+    teacher_id = db_cur.execute(
+        "INSERT INTO teacher (email, firstname, lastname, password_hash, password_salt, create_at) VALUES (?, ?, ?, ?, ?, datetime()) RETURNING id",
+        [email, firstname, lastname, password_hash, password_salt]
+    ).fetchone()["id"]
+    session_id = ''.join([hex(i)[2:] for i in random.randbytes(32)])
+    db_cur.execute("INSERT INTO session (teacher_id, session_id, create_at) VALUES (?, ?, unixepoch())", [teacher_id, session_id])
+    sql_closedb()
+    res = make_response()
+    res.set_cookie("teacher_id", "%s" % teacher_id)
+    res.set_cookie("session_id", session_id)
+    res.headers["Content-Type"] = "application/json"
+    res.data = "{\"teacher_id\": %d, \"session_id\": \"%s\" }\n" % (teacher_id, session_id)
+    return res
+
+@app.route("/login", methods = ["POST", "GET"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html")
+
+    # POST
+    email     = request.form["email"]
+    password  = request.form["password"]
+    if len(email) == 0:
+        return render_template("login.html", errmsg="Email can't be empty")
+    if len(password) == 0:
+        return render_template("login.html", errmsg="Password can't be empty")
+
+    teacher_id = get_teacher_id_if_login_is_correct(email, password)
+    if not teacher_id:
+        return render_template("login.html", errmsg="Invalid Email or Password")
+
+    db = sql_opendb()
+    db_cur = db.cursor()
+    session_id = ''.join([hex(i)[2:] for i in random.randbytes(32)])
+    db_cur.execute("INSERT INTO session (teacher_id, session_id, create_at) VALUES (?, ?, unixepoch())", [teacher_id, session_id])
+    sql_closedb()
+    res = make_response()
+    res.set_cookie("teacher_id", "%s" % teacher_id)
+    res.set_cookie("session_id", session_id)
+    res.headers["Content-Type"] = "application/json"
+    res.data = "{\"teacher_id\": %d, \"session_id\": \"%s\" }\n" % (teacher_id, session_id)
+    return res
+
+@app.route("/logout", methods = ["POST", "GET"])
+def logout():
+    session_id = request.cookies.get("session_id")
+    teacher_id = request.cookies.get("teacher_id")
+    errmsg = None
+    if session_id is None or teacher_id is None:
+        errmsg = "You are not logged in."
+    if not is_logged_in(teacher_id, session_id):
+        errmsg = "You are not logged in."
+    if request.method == "GET":
+        return render_template("logout.html", errmsg = errmsg)
+    db = sql_opendb()
+    db_cur = db.cursor()
+    db_cur.execute("DELETE FROM session WHERE session_id = ? AND teacher_id = ?", [session_id, teacher_id])
+    sql_closedb()
+    return render_template("logout.html", logout = True)
 
 ## API
 # TODO: Proper error message/response

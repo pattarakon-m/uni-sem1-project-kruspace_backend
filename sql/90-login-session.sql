@@ -1,0 +1,6 @@
+-- TEMP SESSION TABLE
+CREATE TABLE IF NOT EXISTS session (
+	teacher_id INTEGER NOT NULL,
+	session_id TEXT NOT NULL,
+	create_at INTERGER NOT NULL
+);

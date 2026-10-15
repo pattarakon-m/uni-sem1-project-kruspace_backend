@@ -17,13 +17,15 @@ if __name__ == "__main__":
     db.commit()
 
     teachers = [
-        ["Miksaka", "Mikoto"],
+        ["Misaka", "Mikoto"],
         ["Touma", "Kamijo"],
         ["Nanoha", "Takamachi"],
         ["Fate", "Testarossa"],
         ["Hayate", "Yagami"]
     ]
-    db_cur.executemany("INSERT INTO teacher (firstname, lastname) VALUES (?, ?)", teachers)
+    for i in range(len(teachers)):
+        teachers[i] += ["%s@example.com" % teachers[i][0].lower()]
+    db_cur.executemany("INSERT INTO teacher (firstname, lastname, email) VALUES (?, ?, ?)", teachers)
 
     students = [
         [random.randint(1, len(teachers)), ''.join([hex(i)[2:] for i in random.randbytes(6)]), "Yuki", "Nagato"],

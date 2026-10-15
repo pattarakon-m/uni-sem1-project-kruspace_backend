@@ -1,0 +1,17 @@
+<style>
+	:root {
+		line-height: 1.5;
+	}
+</style>
+<h1>Logout</h1>
+{% if errmsg %}
+<p color=red>{{ errmsg }}</p>
+{% else %}
+{% if logout %}
+<p>You are succesfully logged out.</p>
+{% else %}
+<form action="/logout" method="POST">
+	<input type=submit value=Logout />
+</form>
+{% endif %}
+{% endif %}

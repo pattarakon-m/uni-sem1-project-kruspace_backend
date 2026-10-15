@@ -1,0 +1,47 @@
+<style>
+	:root {
+		line-height: 1.5;
+	}
+	td {
+		border: solid 1px;
+		max-width: 15em;
+		overflow: scroll;
+		padding: .25em;
+	}
+	form {
+		border: solid 1px;
+	}
+</style>
+<h1>Admin Interface</h1>
+<h2>Teachers</h2>
+<p>
+	Here is the "teacher" table. To register new teacher click <a href="/register">here</a>.
+	To login click <a href="/login">here</a> or use the form below.
+</p>
+<table>
+	<tr>
+		{% for field in db_cur.execute("SELECT * FROM teacher").fetchone() %}
+		<th>{{field}}</th>
+		{% endfor %}
+	</tr>
+	{% for row in db_cur.execute("SELECT *  FROM teacher").fetchall() %}
+	<tr>
+		{% for field in row %}
+		<td>{{ row[field]}}</td>
+		{% endfor %}
+	</tr>
+	{% endfor %}
+</table>
+<br/>
+<form action=/.admin/teacherlogin method=GET target=result >
+	<label>Login as: <input name=tid type=number placeholder="teacher_id" required /></label></br>
+	<input value="Login" type=submit />
+</form>
+<form action=/.admin/newpassword method=GET target=result >
+	<p>Change Password</p>
+	<label>Teacher id: <input name=tid type=number placeholder="teacher_id" required /></label></br>
+	<label>New Password: <input type=text name=pass required /></label></br> 
+	<input value="Change" type=submit />
+</form>
+<h3>result</h3>
+<iframe name=result ></iframe>

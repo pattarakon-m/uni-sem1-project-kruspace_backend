@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS teacher (
 	firstname TEXT,
 	lastname TEXT,
 	prefix TEXT,
-	email TEXT,
+	email TEXT UNIQUE NOT NULL,
 	sex TEXT,
 	profile_img BLOB,
 

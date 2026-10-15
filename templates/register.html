@@ -1,0 +1,16 @@
+<style>
+	:root {
+		line-height: 1.5;
+	}
+</style>
+<h1>Register</h1>
+{% if errmsg %}
+<p color=red>{{ errmsg }}</p>
+{% endif %}
+<form action="/register" method="POST">
+	<label>Email: <input name=email type=email required /></label><br/>
+	<label>Firstname: <input name=firstname type=text required /></label><br/>
+	<label>Lastname: <input name=lastname type=text required /></label><br/>
+	<label>password: <input name=password type=password  required /></label><br/>
+	<input type=submit value=Register />
+</form>
